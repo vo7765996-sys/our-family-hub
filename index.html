@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Family Hub &bull; Stay Connected</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="nav-inner">
+        <div class="brand">
+            <span class="brand-icon">&#127968;</span>
+            <span>Our Family Hub</span>
+        </div>
+        <nav class="nav-links">
+            <a href="#board">Message Board</a>
+            <a href="#members">Family Members</a>
+            <a href="#events">Upcoming &amp; Notes</a>
+        </nav>
+        <div class="admin-controls">
+            <span id="adminStatus" class="admin-pill">Viewer Mode</span>
+            <button type="button" id="adminToggleBtn" class="btn btn-outline" onclick="toggleAdminMode()">
+                Admin Sign In
+            </button>
+        </div>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <span class="pill">Private Family Space &bull; Stay in Touch</span>
+        <h1>Welcome to Our Family Corner</h1>
+        <p>
+            A simple place to share quick check-ins, celebrate milestones, coordinate visits,
+            and keep everyone connected wherever we are.
+        </p>
+    </div>
+</section>
+
+<main class="container">
+
+    <!-- ONLINE MESSAGE BOARD -->
+    <section id="board" class="card">
+        <div class="section-head">
+            <h2>Family Message Board</h2>
+            <span class="badge">Live Check-ins</span>
+        </div>
+        <p class="muted">
+            Post a greeting, travel update, or reminder for the family.
+            <span class="admin-only-inline">As Admin, you can pin important announcements to the top or remove posts.</span>
+        </p>
+
+        <form id="postForm" class="post-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="senderName">Your Name</label>
+                    <input type="text" id="senderName" placeholder="e.g. Mum, Victor, Emmanuel, Otunga" required>
+                </div>
+                <div class="form-group">
+                    <label for="topic">Category</label>
+                    <select id="topic">
+                        <option value="Prayer Time">Prayer Time</option>
+                        <option value="Check-in">Check-in</option>
+                        <option value="Celebration">Celebration</option>
+                        <option value="Meetup">Meetup / Travel</option>
+                        <option value="Reminder">Reminder</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="messageText">Message</label>
+                <textarea id="messageText" rows="3" placeholder="Write a note for everyone..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post to Family Board</button>
+        </form>
+
+        <div id="messagesList" class="messages-list"></div>
+    </section>
+
+    <!-- FAMILY MEMBERS -->
+    <section id="members" class="card">
+        <div class="section-head">
+            <h2>Family Members</h2>
+            <span class="badge badge-soft">Core Family &amp; Household</span>
+        </div>
+
+        <!-- ADMIN ADD MEMBER FORM -->
+        <div id="adminAddMemberPanel" class="admin-panel hidden">
+            <h3>Add a New Family Member</h3>
+            <form id="addMemberForm" class="member-form">
+                <div class="form-row three-col-form">
+                    <div class="form-group">
+                        <label for="memberName">Full Name</label>
+                        <input type="text" id="memberName" placeholder="e.g. Aunt Grace or Child 4" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberRole">Role / Relationship</label>
+                        <input type="text" id="memberRole" placeholder="e.g. Firstborn's Child" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="memberGroup">Section</label>
+                        <select id="memberGroup">
+                            <option value="core">Core Family</option>
+                            <option value="household">Firstborn Brother's Family</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="memberNote">Details / Note</label>
+                    <input type="text" id="memberNote" placeholder="Location, school/work update, birthday, or contact note" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Member</button>
+            </form>
+        </div>
+
+        <!-- CORE FAMILY -->
+        <div id="coreMembersGrid" class="members-grid"></div>
+
+        <!-- FIRSTBORN BROTHER'S HOUSEHOLD -->
+        <div class="household-box">
+            <div class="household-header">
+                <h3>Firstborn Brother&rsquo;s Family</h3>
+                <span class="badge badge-household" id="householdCountBadge">Spouse &amp; Children</span>
+            </div>
+            <div id="householdMembersGrid" class="members-grid"></div>
+        </div>
+    </section>
+
+    <!-- UPCOMING & HOUSE RULES -->
+    <section id="events" class="card">
+        <div class="section-head">
+            <h2>Upcoming Gatherings &amp; Quick Notes</h2>
+        </div>
+        <div class="two-col">
+            <div class="info-panel">
+                <h3>Upcoming Family Plans</h3>
+                <ul>
+                    <li><strong>Holiday Check-in:</strong> Share travel dates and arrival times on the board above.</li>
+                    <li><strong>Birthdays &amp; Milestones:</strong> Post dates so nobody misses a celebration.</li>
+                </ul>
+            </div>
+            <div class="info-panel">
+                <h3>How We Stay in Touch</h3>
+                <ul>
+                    <li>Post quick notes here for everyone to read.</li>
+                    <li>Use phone calls or WhatsApp for urgent or private chats.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    <div class="container">
+        Our Family Hub &bull; Built with care to keep everyone close
+    </div>
+</footer>
+
+<script>
+const ADMIN_PASSCODE = "family2026";
+const MSG_STORAGE_KEY = "family_hub_messages_v3";
+const MEMBERS_STORAGE_KEY = "family_hub_members_v1";
+
+let isAdmin = false;
+
+const defaultMessages = [
+    {
+        id: "msg-1",
+        name: "Victor",
+        topic: "Reminder",
+        text: "Welcome to our family hub!,Develpod By Upcoming IT Expert,Victor Kepha(Family Admin) Pinned notes will always appear at the top of the board.",
+        time: "Just now",
+        pinned: true
+    }
+];
+
+const defaultMembers = [
+    {
+        id: "m-1",
+        name: "Mum",
+        role: "Family Pillar",
+        group: "core",
+        note: "Add location, phone/WhatsApp handle, or birthday note here."
+    },
+    {
+        id: "m-2",
+        name: "Victor",
+        role: "Site Admin · Kisii",
+        group: "core",
+        note: "Maintaining the family hub and sharing updates."
+    },
+    {
+        id: "m-3",
+        name: "Firstborn Brother",
+        role: "Mentor & Supporter",
+        group: "core",
+        note: "Add contact info, city, or updates here."
+    },
+    {
+        id: "m-4",
+        name: "Firstborn Brother's Wife",
+        role: "Spouse",
+        group: "household",
+        note: "Add name, contact details, or updates here."
+    },
+    {
+        id: "m-5",
+        name: "Child 1",
+        role: "Firstborn's Child",
+        group: "household",
+        note: "Add name, age/school class, or milestones here."
+    },
+    {
+        id: "m-6",
+        name: "Child 2",
+        role: "Firstborn's Child",
+        group: "household",
+        note: "Add name, age/school class, or milestones here."
+    },
+    {
+        id: "m-7",
+        name: "Child 3",
+        role: "Firstborn's Child",
+        group: "household",
+        note: "Add name, age/school class, or milestones here."
+    }
+];
+
+function getInitials(name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function loadMessages() {
+    const saved = localStorage.getItem(MSG_STORAGE_KEY);
+    if (!saved) {
+        localStorage.setItem(MSG_STORAGE_KEY, JSON.stringify(defaultMessages));
+        return [...defaultMessages];
+    }
+    try {
+        return JSON.parse(saved);
+    } catch {
+        return [...defaultMessages];
+    }
+}
+
+function saveMessages(messages) {
+    localStorage.setItem(MSG_STORAGE_KEY, JSON.stringify(messages));
+}
+
+function loadMembers() {
+    const saved = localStorage.getItem(MEMBERS_STORAGE_KEY);
+    if (!saved) {
+        localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(defaultMembers));
+        return [...defaultMembers];
+    }
+    try {
+        return JSON.parse(saved);
+    } catch {
+        return [...defaultMembers];
+    }
+}
+
+function saveMembers(members) {
+    localStorage.setItem(MEMBERS_STORAGE_KEY, JSON.stringify(members));
+}
+
+function toggleAdminMode() {
+    if (!isAdmin) {
+        const entered = prompt("Enter Admin Passcode:");
+        if (entered === null) return;
+        if (entered !== ADMIN_PASSCODE) {
+            alert("Incorrect admin passcode.");
+            return;
+        }
+        isAdmin = true;
+    } else {
+        isAdmin = false;
+    }
+    updateAdminUI();
+    renderMessages();
+    renderMembers();
+}
+
+function updateAdminUI() {
+    const statusEl = document.getElementById("adminStatus");
+    const toggleBtn = document.getElementById("adminToggleBtn");
+    const addPanel = document.getElementById("adminAddMemberPanel");
+    const adminHint = document.querySelector(".admin-only-inline");
+
+    if (isAdmin) {
+        statusEl.textContent = "Admin Mode Active";
+        statusEl.classList.add("active");
+        toggleBtn.textContent = "Exit Admin";
+        addPanel.classList.remove("hidden");
+        if (adminHint) adminHint.style.display = "inline";
+    } else {
+        statusEl.textContent = "Viewer Mode";
+        statusEl.classList.remove("active");
+        toggleBtn.textContent = "Admin Sign In";
+        addPanel.classList.add("hidden");
+        if (adminHint) adminHint.style.display = "none";
+    }
+}
+
+function togglePinMessage(msgId) {
+    if (!isAdmin) return;
+    const messages = loadMessages().map(m =>
+        m.id === msgId ? { ...m, pinned: !m.pinned } : m
+    );
+    saveMessages(messages);
+    renderMessages();
+}
+
+function deleteMessage(msgId) {
+    if (!isAdmin) return;
+    if (!confirm("Delete this message from the board?")) return;
+    const messages = loadMessages().filter(m => m.id !== msgId);
+    saveMessages(messages);
+    renderMessages();
+}
+
+function deleteMember(memberId) {
+    if (!isAdmin) return;
+    const target = loadMembers().find(m => m.id === memberId);
+    const label = target ? target.name : "this member";
+    if (!confirm(`Remove ${label} from the family directory?`)) return;
+    const updated = loadMembers().filter(m => m.id !== memberId);
+    saveMembers(updated);
+    renderMembers();
+}
+
+function renderMessages() {
+    const list = document.getElementById("messagesList");
+    const messages = loadMessages();
+
+    // Sort pinned messages first, preserving order within each group
+    const sorted = [...messages].sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
+    list.innerHTML = "";
+
+    if (sorted.length === 0) {
+        list.innerHTML = `<p class="muted">No messages posted yet. Start the conversation above!</p>`;
+        return;
+    }
+
+    sorted.forEach(msg => {
+        const item = document.createElement("div");
+        item.className = msg.pinned ? "msg-item msg-pinned" : "msg-item";
+
+        const meta = document.createElement("div");
+        meta.className = "msg-meta";
+
+        if (msg.pinned) {
+            const pinBadge = document.createElement("span");
+            pinBadge.className = "pin-badge";
+            pinBadge.textContent = "Pinned";
+            meta.appendChild(pinBadge);
+        }
+
+        const author = document.createElement("strong");
+        author.textContent = msg.name;
+
+        const tag = document.createElement("span");
+        tag.className = "msg-tag";
+        tag.textContent = msg.topic;
+
+        const time = document.createElement("span");
+        time.className = "msg-time";
+        time.textContent = msg.time;
+
+        meta.append(author, tag, time);
+
+        if (isAdmin) {
+            const actions = document.createElement("div");
+            actions.className = "msg-actions";
+
+            const pinBtn = document.createElement("button");
+            pinBtn.type = "button";
+            pinBtn.className = "btn-mini btn-pin";
+            pinBtn.textContent = msg.pinned ? "Unpin" : "Pin";
+            pinBtn.onclick = () => togglePinMessage(msg.id);
+
+            const delBtn = document.createElement("button");
+            delBtn.type = "button";
+            delBtn.className = "btn-mini btn-delete";
+            delBtn.textContent = "Delete";
+            delBtn.onclick = () => deleteMessage(msg.id);
+
+            actions.append(pinBtn, delBtn);
+            meta.appendChild(actions);
+        }
+
+        const body = document.createElement("p");
+        body.textContent = msg.text;
+
+        item.append(meta, body);
+        list.appendChild(item);
+    });
+}
+
+function createMemberCardElement(member) {
+    const isHousehold = member.group === "household";
+    const card = document.createElement("article");
+    card.className = isHousehold ? "member-card compact-card" : "member-card";
+
+    if (isAdmin) {
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "member-delete-btn";
+        delBtn.title = `Delete ${member.name}`;
+        delBtn.textContent = "Remove";
+        delBtn.onclick = () => deleteMember(member.id);
+        card.appendChild(delBtn);
+    }
+
+    const avatar = document.createElement("div");
+    avatar.className = isHousehold ? "avatar avatar-alt" : "avatar";
+    avatar.textContent = getInitials(member.name);
+
+    const heading = document.createElement(isHousehold ? "h4" : "h3");
+    heading.textContent = member.name;
+
+    const role = document.createElement("p");
+    role.className = "role";
+    role.textContent = member.role;
+
+    const note = document.createElement("p");
+    note.className = "note";
+    note.textContent = member.note;
+
+    card.append(avatar, heading, role, note);
+    return card;
+}
+
+function renderMembers() {
+    const members = loadMembers();
+    const coreGrid = document.getElementById("coreMembersGrid");
+    const householdGrid = document.getElementById("householdMembersGrid");
+    const badge = document.getElementById("householdCountBadge");
+
+    coreGrid.innerHTML = "";
+    householdGrid.innerHTML = "";
+
+    const coreMembers = members.filter(m => m.group !== "household");
+    const householdMembers = members.filter(m => m.group === "household");
+
+    coreMembers.forEach(m => coreGrid.appendChild(createMemberCardElement(m)));
+    householdMembers.forEach(m => householdGrid.appendChild(createMemberCardElement(m)));
+
+    badge.textContent = `${householdMembers.length} ${householdMembers.length === 1 ? "Member" : "Members"}`;
+}
+
+document.getElementById("postForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    const nameInput = document.getElementById("senderName");
+    const topicInput = document.getElementById("topic");
+    const textInput = document.getElementById("messageText");
+
+    const name = nameInput.value.trim();
+    const topic = topicInput.value;
+    const text = textInput.value.trim();
+    if (!name || !text) return;
+
+    const now = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    const messages = loadMessages();
+    messages.unshift({
+        id: "msg-" + Date.now(),
+        name,
+        topic,
+        text,
+        time: now,
+        pinned: false
+    });
+    saveMessages(messages);
+
+    textInput.value = "";
+    renderMessages();
+});
+
+document.getElementById("addMemberForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!isAdmin) return;
+
+    const nameEl = document.getElementById("memberName");
+    const roleEl = document.getElementById("memberRole");
+    const groupEl = document.getElementById("memberGroup");
+    const noteEl = document.getElementById("memberNote");
+
+    const name = nameEl.value.trim();
+    const role = roleEl.value.trim();
+    const group = groupEl.value;
+    const note = noteEl.value.trim();
+    if (!name || !role || !note) return;
+
+    const members = loadMembers();
+    members.push({
+        id: "m-" + Date.now(),
+        name,
+        role,
+        group,
+        note
+    });
+    saveMembers(members);
+
+    nameEl.value = "";
+    roleEl.value = "";
+    noteEl.value = "";
+    renderMembers();
+});
+
+updateAdminUI();
+renderMessages();
+renderMembers();
+</script>
+
+</body>
+</html>
