@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings &bull; Employee Records Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="brand">
+        <span class="brand-dot"></span>
+        <span>Employee Records Portal</span>
+    </div>
+    <div class="nav-right">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary" style="height: 34px; font-size: 0.82rem;">&larr; Dashboard</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-logout">Sign Out</a>
+    </div>
+</nav>
+
+<div class="container" style="max-width: 560px;">
+    {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    {% if message %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endif %}
+
+    <section class="card">
+        <div class="card-header">
+            <h2>Change Login Credentials</h2>
+        </div>
+
+        <form action="{{ url_for('account') }}" method="POST" class="login-form">
+            <div class="form-group">
+                <label for="full_name">Display Name</label>
+                <input type="text" id="full_name" name="full_name" value="{{ session.full_name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" value="{{ session.username }}" required>
+            </div>
+            <div class="form-group">
+                <label for="current_password">Current Password (Required to confirm changes)</label>
+                <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password (Leave blank to keep current password)</label>
+                <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm New Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+            </div>
+            <div class="actions" style="margin-top: 6px;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+</body>
+</html>
